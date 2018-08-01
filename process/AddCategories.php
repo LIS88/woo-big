@@ -22,7 +22,7 @@ if($queryCategories->num_rows == 0){
 while($curCategory = $queryCategories->fetch_assoc()){
     $categoryObj = new Categories();
     $categoryObj->originalID = $curCategory['id'];
-    $categoryObj->setOption('name', $curCategory['cat_name']);
+    $categoryObj->setOption('name', StringProcessor::normalizeSpecialCharts($curCategory['cat_name']));
     $categoryObj->setOption('parent_id', $curCategory['parent_id']);
     $saveResult = $categoryObj->save();
     if($saveResult){
