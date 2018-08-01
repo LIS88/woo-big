@@ -92,7 +92,16 @@ class Categories extends Unit {
                 $toBeUpdated = array();
                 foreach($this->options AS $curOptionKey => $curOptionVal){
                     if(isset($categoryFromAPI[$curOptionKey]) && ($categoryFromAPI[$curOptionKey] != $curOptionVal)){
-                        $toBeUpdated[$curOptionKey] = $curOptionVal;
+                        if($curOptionKey == 'parent_id'){
+                            $mappingRecord = $this->getMappingRecord($curOptionVal);
+                            if(!$mappingRecord || !isset($mappingRecord['big_id'])){
+                                $this->errors[] = "No mapping record for `parent_id` option with ID: ".$curOptionVal;
+                                return false;
+                            }
+                            $toBeUpdated['parent_id'] = $mappingRecord['big_id'];
+                        }else{
+                            $toBeUpdated[$curOptionKey] = $curOptionVal;
+                        }
                     }
                 }
                 if(count($toBeUpdated) == 0){
@@ -135,7 +144,7 @@ class Categories extends Unit {
             }
             return $apiResult['response']['data']['id'];
         }else{
-            $this->errors[] = $apiResult['response'];
+            $this->errors[] = var_dump($apiResult['response']);
             return false;
         }
     }

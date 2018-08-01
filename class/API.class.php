@@ -55,7 +55,8 @@ class API{
         curl_setopt($apiConnection,CURLOPT_HTTPHEADER, $this->headers);
         curl_setopt($apiConnection, CURLOPT_POSTFIELDS, json_encode($this->body));
         curl_setopt($apiConnection, CURLOPT_RETURNTRANSFER, true);
-        $result['response'] = json_decode(curl_exec($apiConnection), true);
+        $apiResult = curl_exec($apiConnection);
+        $result['response'] = json_decode($apiResult, true);
         $result['code'] = curl_getinfo($apiConnection,CURLINFO_HTTP_CODE);
         curl_close($apiConnection);
         return $result;
