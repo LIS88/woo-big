@@ -135,6 +135,7 @@ class Categories extends Unit {
             }
             return $apiResult['response']['data']['id'];
         }else{
+            $this->errors[] = $apiResult['response'];
             return false;
         }
     }
