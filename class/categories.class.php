@@ -91,7 +91,7 @@ class Categories extends Unit {
                 // Get options to be updated
                 $toBeUpdated = array();
                 foreach($this->options AS $curOptionKey => $curOptionVal){
-                    if(isset($categoryFromAPI['response']['data'][$curOptionKey]) && ($categoryFromAPI['response']['data'][$curOptionKey] != $curOptionVal)){
+                    if(isset($categoryFromAPI[$curOptionKey]) && ($categoryFromAPI[$curOptionKey] != $curOptionVal)){
                         $toBeUpdated[$curOptionKey] = $curOptionVal;
                     }
                 }
