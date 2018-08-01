@@ -26,9 +26,9 @@ while($curCategory = $queryCategories->fetch_assoc()){
     $categoryObj->setOption('parent_id', $curCategory['parent_id']);
     $saveResult = $categoryObj->save();
     if($saveResult){
-        echo "Category '".$curCategory['cat_name']."' was added with ID: ".$saveResult.PHP_EOL;
+        echo "[SUCCESS] Category '".$curCategory['cat_name']."' was added with ID: ".$saveResult.PHP_EOL;
     }else{
-        echo "Failed to add Category '".$curCategory['cat_name']."'".PHP_EOL;
+        echo "[ERROR] Failed to add Category '".$curCategory['cat_name']."'".PHP_EOL;
         if(count($categoryObj->errors) > 0){
             foreach($categoryObj->errors AS $curError){
                 echo " - ERROR: ".$curError.PHP_EOL;

@@ -12,16 +12,22 @@ class Categories extends Unit {
     private $connection = false;
     private $options = array();
     private $apiConf = array();
+    private $updateMode = "";
 
     public $errors = array();
     public $originalID = 0;
 
-    public function __construct(){
+    /**
+     * Categories constructor.
+     * @param $updateMode string (updateExisting|skipExisting)
+     */
+    public function __construct($updateMode = 'updateExisting'){
         global $APIOpt;
         global $dbConnectionConfig;
         global $dbCategoriesConnection; // To prevent MySQLi connections duplicates
 
         $this->apiConf = $APIOpt;
+        $this->updateMode = $updateMode;
 
         if(isset($dbCategoriesConnection) && $dbCategoriesConnection instanceof mysqli && $dbCategoriesConnection->ping()){
             $this->connection = $dbCategoriesConnection;
@@ -59,6 +65,7 @@ class Categories extends Unit {
      * @return int|false
      */
     public function save($saveMapping = true){
+        $toBeUpdated = false;
         if(!$this->connection || !$this->connection->ping()){
             $this->errors[] = "Mysql connection failed";
             return false;
@@ -72,6 +79,32 @@ class Categories extends Unit {
             return false;
         }
 
+        // Check if mapping record exists & update (if is necessary)
+        // TODO: Remove mapping processing after migration is complete
+        $categoryMappingRecord = $this->getMappingRecord($this->originalID);
+        if($categoryMappingRecord && isset($categoryMappingRecord['big_id'])){
+            $categoryFromAPI = $this->load($categoryMappingRecord['big_id']);
+            if($categoryFromAPI && ($this->updateMode == "skipExisting")){
+                $this->errors[] = "Skipped as duplicate";
+                return false;
+            }elseif($categoryFromAPI && ($this->updateMode == "updateExisting")){
+                // Get options to be updated
+                $toBeUpdated = array();
+                foreach($this->options AS $curOptionKey => $curOptionVal){
+                    if(isset($categoryFromAPI['response']['data'][$curOptionKey]) && ($categoryFromAPI['response']['data'][$curOptionKey] != $curOptionVal)){
+                        $toBeUpdated[$curOptionKey] = $curOptionVal;
+                    }
+                }
+                if(count($toBeUpdated) == 0){
+                    $this->errors[] = "Skipped. Nothing to be updated";
+                    return false;
+                }
+            }else{
+                $this->errors[] = "Incorrect mapping record";
+                return false;
+            }
+        }
+
         // Convert parent_id option
         if($this->options['parent_id'] != 0){
             $mappingRecord = $this->getMappingRecord($this->options['parent_id']);
@@ -83,10 +116,18 @@ class Categories extends Unit {
         }
 
         // Make API request
-        $apiObj = new API();
-        $apiObj->setURL($this->apiConf['url'].'catalog/categories');
-        $apiObj->authorize($this->apiConf['client'], $this->apiConf['token']);
-        $apiObj->setBody($this->options);
+        if($toBeUpdated && isset($categoryMappingRecord['big_id'])){
+            $apiObj = new API("PUT");
+            $apiObj->setURL($this->apiConf['url'].'catalog/categories/'.$categoryMappingRecord['big_id']);
+            $apiObj->authorize($this->apiConf['client'], $this->apiConf['token']);
+            $apiObj->setBody($toBeUpdated);
+        }else{
+            $apiObj = new API("POST");
+            $apiObj->setURL($this->apiConf['url'].'catalog/categories');
+            $apiObj->authorize($this->apiConf['client'], $this->apiConf['token']);
+            $apiObj->setBody($this->options);
+        }
+
         $apiResult = $apiObj->process();
         if($apiResult && isset($apiResult['response']['data']['id'])){
             if($saveMapping){
@@ -96,7 +137,30 @@ class Categories extends Unit {
         }else{
             return false;
         }
+    }
 
+    /**
+     * Load category from API by ID
+     * @param $id int
+     *
+     * @return array|false
+     */
+    public function load($id){
+        if(!is_int($id)){
+            $this->errors[] = "Incorrect ID:".$id;
+            return false;
+        }
+
+        // Make API request
+        $apiObj = new API("GET");
+        $apiObj->setURL($this->apiConf['url'].'catalog/categories/'.$id);
+        $apiObj->authorize($this->apiConf['client'], $this->apiConf['token']);
+        $apiResult = $apiObj->process();
+        if($apiResult && isset($apiResult['response']['data']['id'])){
+            return $apiResult['response']['data'];
+        }else{
+            return false;
+        }
     }
 
     /**

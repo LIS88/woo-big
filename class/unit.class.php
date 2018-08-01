@@ -7,4 +7,5 @@
 
 abstract class Unit{
     abstract function setOption($optName, $optVal);
+    abstract function load($id);
 }
