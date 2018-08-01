@@ -146,10 +146,6 @@ class Categories extends Unit {
      * @return array|false
      */
     public function load($id){
-        if(!is_int($id)){
-            $this->errors[] = "Incorrect ID:".$id;
-            return false;
-        }
 
         // Make API request
         $apiObj = new API("GET");
