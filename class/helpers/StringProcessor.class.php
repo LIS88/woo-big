@@ -9,7 +9,7 @@
 
 class StringProcessor{
     static function normalizeSpecialCharts($str){
-        $str = str_replace("&amp;", "&");
+        $str = str_replace("&amp;", "&", $str);
         return $str;
     }
 }
