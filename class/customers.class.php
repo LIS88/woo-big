@@ -24,17 +24,17 @@ class Customers extends Unit{
     public function __construct($updateMode = 'updateExisting'){
         global $APIOpt;
         global $dbConnectionConfig;
-        global $dbCategoriesConnection; // To prevent MySQLi connections duplicates
+        global $dbCustomersConnection; // To prevent MySQLi connections duplicates
 
         $this->apiConf = $APIOpt;
         $this->updateMode = $updateMode;
 
-        if(isset($dbCategoriesConnection) && $dbCategoriesConnection instanceof mysqli && $dbCategoriesConnection->ping()){
-            $this->connection = $dbCategoriesConnection;
+        if(isset($dbCustomersConnection) && $dbCustomersConnection instanceof mysqli && $dbCustomersConnection->ping()){
+            $this->connection = $dbCustomersConnection;
         }else{
             // Make mysql connection
             $this->connection = new mysqli($dbConnectionConfig['host'], $dbConnectionConfig['user'], $dbConnectionConfig['pass'], $dbConnectionConfig['base']);
-            $dbCategoriesConnection = $this->connection;
+            $dbCustomersConnection = $this->connection;
         }
     }
 
